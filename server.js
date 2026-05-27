@@ -7,6 +7,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get("/debug", (req, res) => {
+  res.json({
+    DB_HOST: process.env.DB_HOST,
+    DB_USER: process.env.DB_USER,
+    DB_NAME: process.env.DB_NAME
+  });
+});
+
 const dbConfig = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -23,6 +31,8 @@ app.get("/", (req, res) => {
 app.post("/add_detection", async (req, res) => {
   try {
 
+    console.log("BODY:", req.body);
+
     const {
       class: detectionClass,
       lat,
@@ -32,6 +42,8 @@ app.post("/add_detection", async (req, res) => {
 
     const conn =
       await mysql.createConnection(dbConfig);
+
+    console.log("DATABASE CONNECTED");
 
     await conn.execute(
       `
@@ -60,11 +72,12 @@ app.post("/add_detection", async (req, res) => {
 
   } catch (err) {
 
-    console.log(err);
+    console.error("FULL ERROR:", err);
 
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
+      code: err.code
     });
   }
 });
