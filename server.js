@@ -1,26 +1,18 @@
 const express = require("express");
 const cors = require("cors");
-const mysql = require("mysql2/promise");
+const { Pool } = require("pg");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.get("/debug", (req, res) => {
-  res.json({
-    DB_HOST: process.env.DB_HOST,
-    DB_USER: process.env.DB_USER,
-    DB_NAME: process.env.DB_NAME
-  });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
-
-const dbConfig = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
-};
 
 app.get("/", (req, res) => {
   res.json({
@@ -29,9 +21,10 @@ app.get("/", (req, res) => {
 });
 
 app.post("/add_detection", async (req, res) => {
+
   try {
 
-    console.log("BODY:", req.body);
+    console.log(req.body);
 
     const {
       class: detectionClass,
@@ -40,14 +33,7 @@ app.post("/add_detection", async (req, res) => {
       time
     } = req.body;
 
-    console.log("DB CONFIG:", dbConfig);
-
-const conn =
-  await mysql.createConnection(dbConfig);
-
-    console.log("DATABASE CONNECTED");
-
-    await conn.execute(
+    await pool.query(
       `
       INSERT INTO detections
       (
@@ -56,7 +42,7 @@ const conn =
         longitude,
         detection_time
       )
-      VALUES (?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4)
       `,
       [
         detectionClass,
@@ -66,20 +52,17 @@ const conn =
       ]
     );
 
-    await conn.end();
-
     res.json({
       success: true
     });
 
   } catch (err) {
 
-    console.error("FULL ERROR:", err);
+    console.error(err);
 
     res.status(500).json({
       success: false,
-      error: err.message,
-      code: err.code
+      error: err.message
     });
   }
 });
@@ -88,7 +71,5 @@ const PORT =
   process.env.PORT || 10000;
 
 app.listen(PORT, () => {
-  console.log(
-    `Server running on ${PORT}`
-  );
+  console.log(`Server running on ${PORT}`);
 });
