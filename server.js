@@ -40,8 +40,10 @@ app.post("/add_detection", async (req, res) => {
       time
     } = req.body;
 
-    const conn =
-      await mysql.createConnection(dbConfig);
+    console.log("DB CONFIG:", dbConfig);
+
+const conn =
+  await mysql.createConnection(dbConfig);
 
     console.log("DATABASE CONNECTED");
 
