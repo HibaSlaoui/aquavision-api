@@ -22,6 +22,7 @@ app.get("/", (req, res) => {
 
 app.post("/add_detection", async (req, res) => {
   try {
+
     console.log("BODY:", req.body);
 
     const {
@@ -53,6 +54,28 @@ app.post("/add_detection", async (req, res) => {
     res.json({
       success: true,
     });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+});
+
+app.get("/detections", async (req, res) => {
+  try {
+
+    const result = await pool.query(`
+      SELECT *
+      FROM detections
+      ORDER BY id DESC
+    `);
+
+    res.json(result.rows);
 
   } catch (err) {
 
