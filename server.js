@@ -10,27 +10,25 @@ app.use(express.json());
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false
-  }
+    rejectUnauthorized: false,
+  },
 });
 
 app.get("/", (req, res) => {
   res.json({
-    status: "running"
+    status: "running",
   });
 });
 
 app.post("/add_detection", async (req, res) => {
-
   try {
-
-    console.log(req.body);
+    console.log("BODY:", req.body);
 
     const {
       class: detectionClass,
       lat,
       lon,
-      time
+      time,
     } = req.body;
 
     await pool.query(
@@ -48,12 +46,12 @@ app.post("/add_detection", async (req, res) => {
         detectionClass,
         lat,
         lon,
-        time
+        time,
       ]
     );
 
     res.json({
-      success: true
+      success: true,
     });
 
   } catch (err) {
@@ -62,13 +60,12 @@ app.post("/add_detection", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 });
 
-const PORT =
-  process.env.PORT || 10000;
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
